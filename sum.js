@@ -11,7 +11,7 @@ const readline = require('readline');
  *
  * @returns {Promise} - A promise object with the output containing all the file names and their sum
  */
-async function sumOfFiles(filename, output = {}, last= '') {
+function sumOfFiles(filename, output = {}, last= '') {
     const name = path.basename(filename);
     let next = [];
     output[name] = 0;
