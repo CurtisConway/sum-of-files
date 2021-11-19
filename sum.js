@@ -12,9 +12,9 @@ const readline = require('readline');
  * @returns {Promise} - A promise object with the output containing all the file names and their sum
  */
 function sumOfFiles(filename, output = {}, last= '') {
-    const name = path.basename(filename);
+    const current = path.basename(filename);
     let next = [];
-    output[name] = 0;
+    output[current] = 0;
     return new Promise((resolve, reject) => {
         const filePath = path.join(__dirname, filename);
         let stream = fs.createReadStream(filePath);
@@ -33,7 +33,7 @@ function sumOfFiles(filename, output = {}, last= '') {
         // If it's not a value greater than 0 we store the line as the next value
         lines.on('line', (line) => {
             if(line >= 0) {
-                output[name] += Number(line);
+                output[current] += Number(line);
             } else {
                 next.push(line);
             }
@@ -43,7 +43,7 @@ function sumOfFiles(filename, output = {}, last= '') {
         lines.on('close', async () => {
             for (const file of next) {
                 try {
-                    await sumOfFiles(path.join(path.dirname(filename), file), output, name);
+                    await sumOfFiles(path.join(path.dirname(filename), file), output, current);
                 } catch(error) {
                     reject(error);
                 }
@@ -53,7 +53,7 @@ function sumOfFiles(filename, output = {}, last= '') {
 
             // Increment the value of the current file into the last one
             if (last) {
-                output[last] += output[name];
+                output[last] += output[current];
             }
         });
     });
