@@ -16,12 +16,19 @@ async function sumOfFiles(filename, output = {}, last= '') {
     let next = [];
     output[name] = 0;
     return new Promise((resolve, reject) => {
+        const filePath = path.join(__dirname, filename);
+        let stream = fs.createReadStream(filePath);
+
+        // Throw an error if the stream errors
+        stream.on('error', (error) => {
+            reject(error);
+        })
+
         // Use readline to create a stream and read each file line by line
         const lines = readline.createInterface({
-            input: fs.createReadStream(path.join(__dirname, filename)),
+            input: stream
         });
-        // Throw an error if the file doesn't exist
-        if(!lines) reject(new Error('Invalid File'));
+
         // Iterate through each line and increment the value
         // If it's not a value greater than 0 we store the line as the next value
         lines.on('line', (line) => {
@@ -35,7 +42,11 @@ async function sumOfFiles(filename, output = {}, last= '') {
         // When the stream closes either recursively check the next file or resolve the output
         lines.on('close', async () => {
             for (const file of next) {
-                await sumOfFiles(path.join(path.dirname(filename), file), output, name);
+                try {
+                    await sumOfFiles(path.join(path.dirname(filename), file), output, name);
+                } catch(error) {
+                    reject(error);
+                }
             }
 
             resolve(output);
@@ -44,10 +55,6 @@ async function sumOfFiles(filename, output = {}, last= '') {
             if (last) {
                 output[last] += output[name];
             }
-        });
-
-        lines.on('error', (error) => {
-            reject(error);
         });
     });
 }
